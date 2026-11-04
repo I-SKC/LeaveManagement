@@ -575,5 +575,7 @@ To log in, use the email as the username and the password configured in your loc
 
 ## Author
 
-[Abhishek Kumar](https://github.com/I-SKC)
+**Iynaparthi Sri Krishna Chaitanya**
+
+GitHub profile: https://github.com/I-SKC
 
