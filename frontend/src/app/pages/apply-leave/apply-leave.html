@@ -1,0 +1,236 @@
+
+<div class="apply-page">
+  <!-- Header -->
+  <header class="page-header">
+    <a routerLink="/dashboard" class="back-link">
+      ← Back to Dashboard
+    </a>
+
+    <div class="header-user">
+      <div class="avatar">
+        {{ username.charAt(0).toUpperCase() }}
+      </div>
+
+      <span>{{ username }}</span>
+
+      <button
+        type="button"
+        class="logout-button"
+        (click)="logout()"
+      >
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="apply-container">
+    <section class="intro">
+      <span class="eyebrow">EMPLOYEE PORTAL</span>
+      <h1>Apply for Leave</h1>
+
+      <p>
+        Complete the form below to submit a new leave request.
+      </p>
+    </section>
+
+    <!-- Application Card -->
+    <section class="form-card">
+      <div class="form-heading">
+        <div class="heading-icon">📅</div>
+
+        <div>
+          <h2>Leave Application</h2>
+          <p>Fields marked with * are required.</p>
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      <div
+        class="alert alert-success"
+        *ngIf="successMessage"
+        role="status"
+      >
+        ✅ {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div
+        class="alert alert-error"
+        *ngIf="errorMessage"
+        role="alert"
+      >
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <!-- Leave Application Form -->
+      <form
+        #leaveForm="ngForm"
+        (ngSubmit)="submitLeaveRequest()"
+      >
+        <!-- Leave Type -->
+        <div class="form-group">
+          <label for="leaveTypeId">
+            Leave Type <span>*</span>
+          </label>
+
+          <select
+            id="leaveTypeId"
+            name="leaveTypeId"
+            [(ngModel)]="selectedLeaveTypeId"
+            required
+            [disabled]="
+              isLoadingLeaveTypes ||
+              leaveTypes.length === 0 ||
+              isSubmitting
+            "
+          >
+            <option [ngValue]="null">
+              {{
+                isLoadingLeaveTypes
+                  ? 'Loading leave types...'
+                  : 'Select a leave type'
+              }}
+            </option>
+
+            <option
+              *ngFor="let leaveType of leaveTypes"
+              [ngValue]="leaveType.leaveTypeId"
+            >
+              {{ leaveType.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Dates -->
+        <div class="date-grid">
+          <div class="form-group">
+            <label for="startDate">
+              Start Date <span>*</span>
+            </label>
+
+            <input
+              id="startDate"
+              type="date"
+              name="startDate"
+              [(ngModel)]="startDate"
+              (ngModelChange)="onDateRangeChanged()"
+              [min]="today"
+              required
+              [disabled]="isSubmitting"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="endDate">
+              End Date <span>*</span>
+            </label>
+
+            <input
+              id="endDate"
+              type="date"
+              name="endDate"
+              [(ngModel)]="endDate"
+              (ngModelChange)="onDateRangeChanged()"
+              [min]="startDate || today"
+              required
+              [disabled]="isSubmitting"
+            />
+          </div>
+        </div>
+
+        <!-- Duration Preview -->
+        <div
+          class="days-preview"
+          *ngIf="totalDays > 0"
+        >
+          <span>Requested duration</span>
+
+          <strong>
+            {{ totalDays }}
+            {{ totalDays === 1 ? 'working day' : 'working days' }}
+          </strong>
+        </div>
+
+        <!-- Remaining balance for the selected leave type -->
+        <div
+          class="days-preview"
+          *ngIf="selectedBalance"
+        >
+          <span>Remaining balance</span>
+
+          <strong>
+            {{ selectedBalance.remainingDays }} of
+            {{ selectedBalance.availableDays }} days
+          </strong>
+        </div>
+
+        <div
+          class="alert alert-error"
+          *ngIf="selectedBalance && isOverBalance"
+          role="alert"
+        >
+          ⚠️ This request uses {{ totalDays }} working days but only
+          {{ selectedBalance.remainingDays }} remain for this leave type.
+        </div>
+
+        <!-- Reason -->
+        <div class="form-group">
+          <label for="reason">
+            Reason for Leave <span>*</span>
+          </label>
+
+          <textarea
+            id="reason"
+            name="reason"
+            [(ngModel)]="reason"
+            rows="5"
+            maxlength="500"
+            placeholder="Explain why you need leave..."
+            required
+            [disabled]="isSubmitting"
+          ></textarea>
+
+          <small>{{ reason.length }}/500 characters</small>
+        </div>
+
+        <!-- Buttons -->
+        <div class="form-actions">
+          <a
+            routerLink="/dashboard"
+            class="cancel-button"
+          >
+            Cancel
+          </a>
+
+          <button
+            type="submit"
+            class="submit-button"
+            [disabled]="
+              isSubmitting ||
+              isLoadingLeaveTypes ||
+              isOverBalance ||
+              leaveForm.invalid ||
+              !selectedLeaveTypeId ||
+              !startDate ||
+              !endDate ||
+              !reason.trim() ||
+              startDate > endDate
+            "
+          >
+            {{
+              isSubmitting
+                ? 'Submitting...'
+                : 'Submit Leave Request'
+            }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      © 2026 LeaveFlow · Leave Management System
+    </footer>
+  </main>
+</div>

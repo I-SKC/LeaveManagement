@@ -1,0 +1,306 @@
+<div class="management-page">
+  <header class="topbar">
+    <a routerLink="/dashboard" class="brand">
+      <span class="brand-logo">L</span>
+      <span>
+        <strong>LeaveFlow</strong>
+        <small>Leave Management</small>
+      </span>
+    </a>
+
+    <div class="user-actions">
+      <span class="user-avatar">
+        {{ username.charAt(0).toUpperCase() }}
+      </span>
+
+      <div class="user-info">
+        <strong>{{ username }}</strong>
+        <small>Human Resources</small>
+      </div>
+
+      <button class="btn btn-outline" type="button" (click)="logout()">Sign Out</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="welcome-section">
+      <div>
+        <span class="eyebrow">HUMAN RESOURCES</span>
+        <h1>All Leave Requests</h1>
+        <p>Review every request across the company and make decisions.</p>
+      </div>
+
+      <button class="btn btn-primary" type="button" (click)="refresh()" [disabled]="loading">
+        {{ loading ? 'Refreshing...' : '↻ Refresh Requests' }}
+      </button>
+    </section>
+
+    <div class="alert alert-success" *ngIf="message" role="status">✓ {{ message }}</div>
+
+    <div class="alert alert-error" *ngIf="error" role="alert">
+      {{ error }}
+    </div>
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-icon purple">📋</div>
+        <div>
+          <p>Total Requests</p>
+          <h2>{{ filtered.length }}</h2>
+          <small>All active and decided requests</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon orange">⏳</div>
+        <div>
+          <p>Pending</p>
+          <h2>{{ pendingCount }}</h2>
+          <small>Awaiting your decision</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon" style="background: #dcfce7">✅</div>
+        <div>
+          <p>Approved</p>
+          <h2>{{ approvedCount }}</h2>
+          <small>Requests approved</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon" style="background: #fee2e2">❌</div>
+        <div>
+          <p>Rejected</p>
+          <h2>{{ rejectedCount }}</h2>
+          <small>Requests rejected</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <h2>All Leave Requests</h2>
+          <p>Every request in the system, newest first.</p>
+        </div>
+
+        <span class="count-badge">{{ filtered.length }} request(s)</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <span>⌕</span>
+          <input
+            type="search"
+            name="search"
+            [(ngModel)]="search"
+            placeholder="Search by request ID, reason, employee..."
+            aria-label="Search leave requests"
+          />
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="loading">
+        <div class="spinner"></div>
+        <h3>Loading requests</h3>
+        <p>Please wait while we retrieve all leave requests.</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+        <div class="empty-icon">📭</div>
+        <h3>No requests found</h3>
+        <p>There are no matching requests. Try changing your search or refresh the list.</p>
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading && filtered.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Employee</th>
+              <th>Leave Type</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Duration</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of filtered">
+              <td>
+                <strong>#{{ row.leaveRequestId }}</strong>
+              </td>
+
+              <td>
+                <div class="employee-cell">
+                  <span class="employee-avatar">
+                    {{ employeeLabel(row.employeeId).charAt(0).toUpperCase() }}
+                  </span>
+
+                  <div>
+                    <strong>{{ employeeLabel(row.employeeId) }}</strong>
+                    <small>{{ employeeEmail(row.employeeId) }}</small>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ leaveType(row.leaveTypeId) }}</td>
+
+              <td>
+                <div class="date-cell">
+                  <strong>{{ row.startDate | date: 'dd MMM yyyy' }}</strong>
+                </div>
+              </td>
+
+              <td>{{ row.endDate | date: 'dd MMM yyyy' }}</td>
+
+              <td>
+                <span class="duration-badge">
+                  {{ row.totalDays }}
+                  {{ row.totalDays === 1 ? 'day' : 'days' }}
+                </span>
+              </td>
+
+              <td>
+                <span class="reason-text" [title]="row.reason">
+                  {{ row.reason }}
+                </span>
+              </td>
+
+              <td>
+                <span class="status-badge" [ngClass]="row.status.toLowerCase()">
+                  {{ row.status }}
+                </span>
+              </td>
+
+              <td>
+                {{ row.createdAtUtc | date: 'dd MMM yyyy' }}
+              </td>
+
+              <td>
+                <div class="action-buttons" *ngIf="isPending(row)">
+                  <button
+                    class="btn btn-approve"
+                    type="button"
+                    (click)="openApproveConfirmation(row)"
+                    [disabled]="isProcessing(row.leaveRequestId)"
+                  >
+                    {{ isProcessing(row.leaveRequestId) ? 'Please wait...' : 'Approve' }}
+                  </button>
+
+                  <button
+                    class="btn btn-reject"
+                    type="button"
+                    (click)="openRejectDialog(row)"
+                    [disabled]="isProcessing(row.leaveRequestId)"
+                  >
+                    Reject
+                  </button>
+                </div>
+
+                <span class="decided-text" *ngIf="!isPending(row)">Already decided</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer" *ngIf="!loading && filtered.length > 0">
+        Showing {{ filtered.length }} request(s)
+      </div>
+      <section class="content-card confirmation-card" *ngIf="pendingRequest as request">
+        <div class="section-heading">
+          <div>
+            <h2>Confirm {{ pendingAction?.action === 'approve' ? 'Approval' : 'Rejection' }}</h2>
+            <p>Review this leave request before confirming your decision.</p>
+          </div>
+
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="clearPendingAction()"
+            [disabled]="isProcessing(request.leaveRequestId)"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <div class="confirmation-details">
+          <div>
+            <small>Request ID</small>
+            <strong>#{{ request.leaveRequestId }}</strong>
+          </div>
+          <div>
+            <small>Leave type</small>
+            <strong>{{ leaveType(request.leaveTypeId) }}</strong>
+          </div>
+          <div>
+            <small>Start date</small>
+            <strong>{{ request.startDate | date: 'dd MMM yyyy' }}</strong>
+          </div>
+          <div>
+            <small>End date</small>
+            <strong>{{ request.endDate | date: 'dd MMM yyyy' }}</strong>
+          </div>
+          <div>
+            <small>Duration</small>
+            <strong>{{ request.totalDays }} day(s)</strong>
+          </div>
+          <div class="confirmation-reason">
+            <small>Employee reason</small>
+            <strong>{{ request.reason }}</strong>
+          </div>
+        </div>
+
+        <div class="rejection-form" *ngIf="pendingAction?.action === 'reject'">
+          <label for="hrRejectComment">Rejection reason</label>
+          <textarea
+            id="hrRejectComment"
+            [(ngModel)]="rejectComment"
+            placeholder="Explain why this request is being rejected..."
+            rows="3"
+            [disabled]="isProcessing(request.leaveRequestId)"
+          ></textarea>
+          <p class="form-hint">A reason is required to reject a leave request.</p>
+        </div>
+
+        <div class="confirmation-actions">
+          <button
+            class="btn btn-approve"
+            type="button"
+            (click)="pendingAction?.action === 'approve' ? confirmApprove() : confirmReject()"
+            [disabled]="
+              isProcessing(request.leaveRequestId) ||
+              (pendingAction?.action === 'reject' && !rejectComment.trim())
+            "
+          >
+            {{
+              isProcessing(request.leaveRequestId)
+                ? 'Please wait...'
+                : pendingAction?.action === 'approve'
+                  ? 'Confirm Approval'
+                  : 'Confirm Rejection'
+            }}
+          </button>
+
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="clearPendingAction()"
+            [disabled]="isProcessing(request.leaveRequestId)"
+          >
+            Cancel
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <footer class="page-footer">© {{ year || 2026 }} LeaveFlow · Leave Management System</footer>
+  </main>
+</div>

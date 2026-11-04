@@ -1,0 +1,114 @@
+<div class="page-shell">
+
+  <header class="profile-header">
+    <a routerLink="/dashboard" class="brand">
+      ← LeaveFlow
+    </a>
+
+    <div class="header-user">
+      <span>{{ username }}</span>
+
+      <button type="button" (click)="logout()">
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="title-row">
+      <div>
+        <p class="eyebrow">MY ACCOUNT</p>
+        <h1>Employee Profile</h1>
+        <p>View your personal and employment information.</p>
+      </div>
+
+
+    </div>
+
+    <!-- Loading state -->
+    <section class="card loading-card" *ngIf="loading">
+      <div class="spinner"></div>
+      <h2>Loading your profile</h2>
+      <p>Please wait while we retrieve your employee information.</p>
+    </section>
+
+    <!-- Error state -->
+    <section class="card error-card" *ngIf="!loading && error">
+      <h2>Unable to load profile</h2>
+      <p>{{ error }}</p>
+
+      <button type="button" class="primary" (click)="loadProfile()">
+        Try Again
+      </button>
+    </section>
+
+    <!-- Employee profile -->
+    <section
+      class="card profile-card"
+      *ngIf="!loading && !error && employee as emp"
+    >
+      <div class="profile-banner">
+        <div class="profile-avatar">
+          {{ initials }}
+        </div>
+
+        <div class="profile-heading">
+          <h2>{{ emp.name }}</h2>
+          <p>{{ emp.email }}</p>
+
+          <span
+            class="badge"
+            [class.approved]="emp.isActive"
+            [class.rejected]="!emp.isActive"
+          >
+            {{ emp.isActive ? 'Active Employee' : 'Inactive Employee' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <h3>Personal Information</h3>
+        <p>Your registered employee details.</p>
+      </div>
+
+      <div class="details-grid">
+        <div class="detail-item">
+          <span>Employee ID</span>
+          <strong>{{ emp.employeeId }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Email Address</span>
+          <strong>{{ emp.email }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Department</span>
+          <strong>{{ departmentLabel }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Manager</span>
+          <strong>{{ managerLabel }}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Joining Date</span>
+          <strong>
+            {{ emp.joinDate ? (emp.joinDate | date:'dd MMM yyyy') : 'Not available' }}
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Employment Status</span>
+          <strong>{{ emp.isActive ? 'Active' : 'Inactive' }}</strong>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="page-footer">
+      © 2026 LeaveFlow · Leave Management System
+    </footer>
+  </main>
+</div>

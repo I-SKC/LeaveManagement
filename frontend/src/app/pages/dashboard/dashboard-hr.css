@@ -1,0 +1,254 @@
+/* ==========================================
+   HR DASHBOARD
+========================================== */
+
+.hr-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* HR Quick Actions */
+.hr-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 25px 24px;
+}
+
+.hr-quick-actions .view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hr-quick-actions .view-button:hover,
+.view-button:hover {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* Two column layout for departments and holidays */
+.hr-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.hr-two-column > .content-card + .content-card {
+  margin-top: 0;
+}
+
+.hr-two-column .content-card {
+  height: 100%;
+}
+
+/* HR Department Grid */
+.hr-department-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0 25px 25px;
+}
+
+.hr-department-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 18px;
+  background: #f9faff;
+  border: 1px solid #e8eaf5;
+  border-radius: 14px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hr-department-item:hover {
+  background: #ffffff;
+  border-color: #c3befb;
+  box-shadow: 0 8px 22px rgb(79 70 229 / 9%);
+  transform: translateY(-2px);
+}
+
+.hr-department-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background: #eeedff;
+  border-radius: 13px;
+  font-size: 22px;
+}
+
+.hr-department-item strong {
+  display: block;
+  overflow: hidden;
+  color: #202b45;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-department-item p {
+  margin: 6px 0 0;
+  color: #8992a8;
+  font-size: 12px;
+}
+
+/* HR Holiday List */
+.hr-holiday-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 0 25px 25px;
+}
+
+.hr-holiday-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 17px;
+  background: #fffaf2;
+  border: 1px solid #f4ead7;
+  border-radius: 14px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hr-holiday-item:hover {
+  background: #ffffff;
+  border-color: #f3c878;
+  box-shadow: 0 7px 20px rgb(180 130 40 / 9%);
+  transform: translateY(-2px);
+}
+
+.hr-holiday-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: #fff0d5;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.hr-holiday-item strong {
+  display: block;
+  color: #273043;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hr-holiday-item p {
+  margin: 6px 0 0;
+  color: #9a7b45;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Empty states inside the HR grids */
+.hr-department-grid .empty-state,
+.hr-holiday-list .empty-state {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 30px 15px;
+  background: #fafbff;
+  border: 1px dashed #dfe3ef;
+  border-radius: 14px;
+}
+
+.hr-department-grid .empty-state h3,
+.hr-holiday-list .empty-state h3 {
+  margin: 10px 0 6px;
+  color: #33415c;
+  font-size: 14px;
+}
+
+.hr-department-grid .empty-state p,
+.hr-holiday-list .empty-state p {
+  margin: 0;
+  color: #8a93a5;
+  font-size: 12px;
+}
+
+/* Additional statistics colour */
+.color-4 {
+  background: #e0f2fe;
+}
+
+/* HR Dashboard spacing */
+.content-card + .content-card {
+  margin-top: 25px;
+}
+
+button.view-button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Responsive HR dashboard */
+@media (max-width: 1200px) {
+  .hr-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .hr-two-column > .content-card + .content-card {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hr-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .hr-quick-actions {
+    flex-direction: column;
+    padding: 0 15px 20px;
+  }
+
+  .hr-quick-actions .view-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .hr-department-grid,
+  .hr-holiday-list {
+    grid-template-columns: 1fr;
+    padding: 0 15px 20px;
+    gap: 12px;
+  }
+
+  .hr-department-item,
+  .hr-holiday-item {
+    padding: 14px;
+  }
+
+  .hr-department-icon,
+  .hr-holiday-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,162 @@
+
+<div class="page-shell">
+  <header class="topbar">
+    <a routerLink="/dashboard" class="brand">
+      <span class="brand-icon">L</span>
+      <span class="brand-text">
+        LeaveFlow
+        <small>Leave Management</small>
+      </span>
+    </a>
+
+    <div class="user-info">
+      <span class="user-avatar">
+        {{ username.charAt(0).toUpperCase() }}
+      </span>
+      <div class="user-details">
+        <strong>{{ username }}</strong>
+        <small>Employee</small>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">EMPLOYEE PORTAL</p>
+        <h1>My Leave Balance</h1>
+        <p class="subtitle">
+          Track your available leave, pending requests, and remaining days.
+        </p>
+      </div>
+
+      <a routerLink="/dashboard" class="back-button">
+        ← Back to Dashboard
+      </a>
+    </section>
+
+    <section class="summary-banner">
+      <div>
+        <span class="banner-label">YOUR LEAVE OVERVIEW</span>
+        <h2>Plan your time off with confidence.</h2>
+        <p>
+          Your leave allowance and remaining balance for {{ year }}.
+        </p>
+      </div>
+
+      <div class="banner-icon">📅</div>
+    </section>
+
+    <div *ngIf="loading" class="notice">
+      <span class="loading-spinner"></span>
+      Loading your leave balances...
+    </div>
+
+    <div *ngIf="!loading && error" class="error" role="alert">
+      <span>⚠️</span>
+      <div>
+        <strong>Unable to display leave balance</strong>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+
+    <section
+      *ngIf="!loading && balances.length > 0"
+      class="balance-section"
+    >
+      <div class="section-heading">
+        <div>
+          <h2>Leave Allowances</h2>
+          <p>Your current balance by leave type.</p>
+        </div>
+
+        <span class="year-badge">{{ year }}</span>
+      </div>
+
+      <div class="balance-grid">
+        <article
+          class="balance-card"
+          *ngFor="let balance of balances"
+        >
+          <div class="card-top">
+            <div class="leave-icon">📆</div>
+            <span class="status-badge">Active Balance</span>
+          </div>
+
+          <h3>{{ leaveType(balance.leaveTypeId) }}</h3>
+
+          <div class="remaining-value">
+            <strong>{{ balance.remainingDays }}</strong>
+            <span>days remaining</span>
+          </div>
+
+          <div class="progress-heading">
+            <span>Remaining allowance</span>
+            <strong>{{ percent(balance) | number:'1.0-0' }}%</strong>
+          </div>
+
+          <div
+            class="progress-track"
+            role="progressbar"
+            [attr.aria-valuenow]="percent(balance)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-label]="
+              leaveType(balance.leaveTypeId) + ' remaining allowance'
+            "
+          >
+            <div
+              class="progress-value"
+              [style.width.%]="percent(balance)"
+            ></div>
+          </div>
+
+          <div class="balance-stats">
+            <div class="stat">
+              <span class="stat-indicator available-indicator"></span>
+              <div>
+                <strong>{{ balance.availableDays }}</strong>
+                <small>Available</small>
+              </div>
+            </div>
+
+            <div class="stat">
+              <span class="stat-indicator pending-indicator"></span>
+              <div>
+                <strong>{{ balance.pendingDays }}</strong>
+                <small>Pending</small>
+              </div>
+            </div>
+
+            <div class="stat">
+              <span class="stat-indicator remaining-indicator"></span>
+              <div>
+                <strong>{{ balance.remainingDays }}</strong>
+                <small>Remaining</small>
+              </div>
+            </div>
+          </div>
+
+          <p class="card-footer">
+            Balance for {{ balance.year }}.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section
+      *ngIf="!loading && !error && balances.length === 0"
+      class="empty-state"
+    >
+      <div class="empty-icon">📋</div>
+      <h2>No leave balances found</h2>
+      <p>
+        There are no leave balance records available for {{ year }}.
+      </p>
+    </section>
+
+    <footer class="page-footer">
+      © {{ year }} LeaveFlow · Leave Management System
+    </footer>
+  </main>
+</div>

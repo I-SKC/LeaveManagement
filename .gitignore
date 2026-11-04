@@ -1,0 +1,37 @@
+# AI tools and temporary files
+.freebuff/
+.cloud-attachments/
+temp-db-tool/
+
+# .NET generated files
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Angular generated files
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+**/secrets.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Database and backups
+*.bak
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+# Logs and OS files
+*.log
+*.tmp
+.DS_Store
+**/appsettings.json

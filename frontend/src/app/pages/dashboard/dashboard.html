@@ -1,0 +1,612 @@
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <div>
+        <h2>LeaveFlow</h2>
+        <p>Leave Management</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navigation">
+      <a routerLink="/dashboard" class="nav-item active">
+        <span>▦</span>
+        Dashboard
+      </a>
+
+      <a *ngIf="isEmployee" routerLink="/my-leaves" class="nav-item">
+        <span>📅</span>
+        My Leaves
+      </a>
+
+      <a *ngIf="isEmployee" routerLink="/leave-balance" class="nav-item">
+        <span>💰</span>
+        Leave Balance
+      </a>
+
+      <a *ngIf="isEmployee || isManager || isHR" routerLink="/profile" class="nav-item">
+        <span>👤</span>
+        My Profile
+      </a>
+
+      <a *ngIf="isEmployee" routerLink="/apply-leave" class="nav-item">
+        <span>📝</span>
+        Apply for Leave
+      </a>
+
+      <a *ngIf="isManager || isHR" routerLink="/approvals" class="nav-item">
+        <span>👥</span>
+        Leave Approvals
+      </a>
+
+      <a *ngIf="isManager || isHR" routerLink="/approval-history" class="nav-item">
+        <span>📜</span>
+        Approval History
+      </a>
+
+      <a *ngIf="isHR" routerLink="/hr-requests" class="nav-item">
+        <span>📋</span>
+        All Requests
+      </a>
+
+      <a *ngIf="isHR" routerLink="/administration" class="nav-item">
+        <span>⚙️</span>
+        Administration
+      </a>
+    </nav>
+
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="profile">
+        <div class="avatar">
+          {{ username.charAt(0).toUpperCase() }}
+        </div>
+
+        <div class="profile-info">
+          <strong>{{ username }}</strong>
+          <span>{{ role }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="logout-button" (click)="logout()">
+        <span>↪</span>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <h1>{{ dashboardTitle }}</h1>
+        <p>Welcome back! Here's your leave overview.</p>
+      </div>
+
+      <div class="topbar-user">
+        <div class="user-avatar">
+          {{ username.charAt(0).toUpperCase() }}
+        </div>
+
+        <div>
+          <strong>{{ username }}</strong>
+          <span>{{ role }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Welcome Banner -->
+    <section class="welcome-banner">
+      <div>
+        <span class="eyebrow">LEAVE MANAGEMENT SYSTEM</span>
+
+        <h2>Hello, {{ username }}! 👋</h2>
+
+        <p *ngIf="isEmployee">Manage your leave requests and keep track of their status.</p>
+
+        <p *ngIf="isManager">Monitor your team and manage employee leave approvals.</p>
+
+        <p *ngIf="isHR">Manage employees, monitor leave requests and oversee leave operations.</p>
+      </div>
+
+      <div class="banner-icon">📅</div>
+    </section>
+
+    <!-- Employee / Manager Loading State -->
+    <div class="loading-message" *ngIf="isLoading">Loading your dashboard...</div>
+
+    <!-- Employee / Manager Error State -->
+    <section class="error-message" *ngIf="!isLoading && errorMessage">
+      <div class="error-icon">⚠️</div>
+
+      <div class="error-content">
+        <h3>Unable to Load Dashboard</h3>
+        <p>{{ errorMessage }}</p>
+
+        <button
+          type="button"
+          class="retry-button"
+          (click)="loadHRDashboard()"
+          *ngIf="isHR"
+        >
+          Try Again
+        </button>
+
+        <button
+          type="button"
+          class="retry-button"
+          (click)="loadManagerDashboard()"
+          *ngIf="isManager"
+        >
+          Try Again
+        </button>
+
+        <button type="button" class="retry-button" (click)="loadLeaveRequests()" *ngIf="isEmployee">
+          Try Again
+        </button>
+      </div>
+    </section>
+
+    <!-- Dashboard Data -->
+    <ng-container *ngIf="!isLoading && !errorMessage">
+      <!-- ================= MANAGER DASHBOARD ================= -->
+      <ng-container *ngIf="isManager">
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+          <article class="stat-card" *ngFor="let stat of getManagerStatCards(); let i = index">
+            <div class="stat-top">
+              <span>{{ stat.label }}</span>
+
+              <div class="stat-icon" [ngClass]="'color-' + i">
+                {{ stat.icon }}
+              </div>
+            </div>
+
+            <h2>{{ stat.value }}</h2>
+            <p>{{ stat.subtitle }}</p>
+          </article>
+        </section>
+
+        <!-- Team Members -->
+        <section class="content-card">
+          <div class="section-heading">
+            <div>
+              <h2>Your Team</h2>
+              <p>People reporting to you.</p>
+            </div>
+
+            <a routerLink="/approval-history" class="view-button"> View History → </a>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Email</th>
+                  <th>Department</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let member of teamMembers">
+                  <td>
+                    <strong>{{ member.name }}</strong>
+                  </td>
+                  <td>{{ member.email }}</td>
+                  <td>{{ getDepartmentName(member.departmentId) }}</td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.active]="member.isActive"
+                      [class.inactive]="!member.isActive"
+                    >
+                      {{ member.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                </tr>
+
+                <tr *ngIf="teamMembers.length === 0">
+                  <td colspan="4" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No Team Members Found</h3>
+                    <p>You don't have any direct reports yet.</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="demo-note">
+            Showing people whose manager is you in the backend employee records.
+          </div>
+        </section>
+
+        <!-- Recent Decisions -->
+        <section class="content-card">
+          <div class="section-heading">
+            <div>
+              <h2>Recent Decisions</h2>
+              <p>Your latest approved and rejected requests.</p>
+            </div>
+
+            <a routerLink="/approval-history" class="view-button"> View All → </a>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Request</th>
+                  <th>Employee</th>
+                  <th>Leave Type</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                  <th>Decided On</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let row of recentDecisions">
+                  <td>
+                    <strong>#{{ row.leaveRequestId }}</strong>
+                  </td>
+
+                  <td>
+                    <div class="employee-cell">
+                      <span class="employee-avatar">
+                        {{ (row.employeeName || 'E').charAt(0).toUpperCase() }}
+                      </span>
+
+                      <div>
+                        <strong>{{ row.employeeName || 'Employee' }}</strong>
+                        <small>{{ row.employeeEmail }}</small>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>{{ row.leaveTypeName || '—' }}</td>
+                  <td>{{ formatDate(row.startDate) }}</td>
+                  <td>{{ formatDate(row.endDate) }}</td>
+                  <td>{{ row.totalDays }} days</td>
+
+                  <td>
+                    <span class="status-badge" [ngClass]="row.status.toLowerCase()">
+                      {{ row.status }}
+                    </span>
+                  </td>
+
+                  <td>{{ formatDateTime(row.decidedAtUtc) }}</td>
+                </tr>
+
+                <tr *ngIf="recentDecisions.length === 0">
+                  <td colspan="8" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No Decisions Yet</h3>
+                    <p>You haven't decided any leave requests yet.</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- ================= EMPLOYEE DASHBOARD ================= -->
+      <ng-container *ngIf="isEmployee">
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+          <article class="stat-card" *ngFor="let stat of leaveStats; let i = index">
+            <div class="stat-top">
+              <span>{{ stat.label }}</span>
+
+              <div class="stat-icon" [ngClass]="'color-' + i">
+                {{ stat.icon }}
+              </div>
+            </div>
+
+            <h2>{{ stat.value }}</h2>
+            <p>Based on your leave requests</p>
+          </article>
+        </section>
+
+        <!-- Recent Leave Requests -->
+        <section class="content-card">
+          <div class="section-heading">
+            <div>
+              <h2>Recent Leave Requests</h2>
+              <p>Review your latest leave applications.</p>
+            </div>
+
+            <a routerLink="/my-leaves" class="view-button"> View All → </a>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Leave Type</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Days</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let leave of recentLeaves">
+                  <td class="leave-type">
+                    {{ getLeaveType(leave.leaveTypeId) }}
+                  </td>
+
+                  <td>{{ leave.startDate | date: 'dd MMM yyyy' }}</td>
+                  <td>{{ leave.endDate | date: 'dd MMM yyyy' }}</td>
+                  <td>{{ leave.totalDays }}</td>
+                  <td>{{ leave.reason }}</td>
+
+                  <td>
+                    <span class="status" [ngClass]="leave.status.toLowerCase()">
+                      {{ leave.status }}
+                    </span>
+                  </td>
+                </tr>
+
+                <tr *ngIf="recentLeaves.length === 0">
+                  <td colspan="6" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No Leave Requests Found</h3>
+                    <p>You haven't submitted any leave requests yet.</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="demo-note">
+            Showing your actual leave requests retrieved from the backend API.
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- ================= HR DASHBOARD ================= -->
+      <ng-container *ngIf="isHR">
+        <!-- HR Loading -->
+        <div class="loading-message" *ngIf="hrLoading">Loading HR dashboard...</div>
+
+        <!-- HR Error -->
+        <section class="error-message" *ngIf="hrError">
+          <div class="error-icon">⚠️</div>
+
+          <div class="error-content">
+            <h3>Unable to Load HR Information</h3>
+            <p>{{ hrError }}</p>
+
+            <button type="button" class="retry-button" (click)="loadHRDashboard()">
+              Try Again
+            </button>
+          </div>
+        </section>
+
+        <ng-container *ngIf="!hrLoading">
+          <!-- HR Statistics -->
+          <section class="stats-grid hr-stats-grid">
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Total Employees</span>
+                <div class="stat-icon color-0">👥</div>
+              </div>
+              <h2>{{ hrEmployees.length }}</h2>
+              <p>Registered employees</p>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Active Employees</span>
+                <div class="stat-icon color-1">✅</div>
+              </div>
+              <h2>{{ hrActiveEmployees }}</h2>
+              <p>Currently active</p>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Pending Requests</span>
+                <div class="stat-icon color-2">⏳</div>
+              </div>
+              <h2>{{ hrPendingRequests }}</h2>
+              <p>Awaiting decisions</p>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Approved Requests</span>
+                <div class="stat-icon color-3">✔️</div>
+              </div>
+              <h2>{{ hrApprovedRequests }}</h2>
+              <p>All-time approved requests</p>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Rejected Requests</span>
+                <div class="stat-icon color-4">❌</div>
+              </div>
+              <h2>{{ hrRejectedRequests }}</h2>
+              <p>All-time rejected requests</p>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Departments</span>
+                <div class="stat-icon color-0">🏢</div>
+              </div>
+              <h2>{{ hrDepartments.length }}</h2>
+              <p>Registered departments</p>
+            </article>
+          </section>
+
+          <!-- HR Quick Actions -->
+          <section class="content-card">
+            <div class="section-heading">
+              <div>
+                <h2>HR Quick Actions</h2>
+                <p>Manage employees and leave operations.</p>
+              </div>
+            </div>
+
+            <div class="hr-quick-actions">
+              <button type="button" class="view-button" (click)="goToHRAdministration()">
+                ⚙️ Manage Employees & Policies
+              </button>
+
+              <button type="button" class="view-button" (click)="goToHRRequests()">
+                📋 View All Leave Requests
+              </button>
+
+              <button type="button" class="view-button" (click)="goToApprovals()">
+                👥 Manage Approvals
+              </button>
+
+              <button type="button" class="view-button" (click)="goToApprovalHistory()">
+                📜 Approval History
+              </button>
+            </div>
+          </section>
+
+          <!-- Recent Leave Requests -->
+          <section class="content-card">
+            <div class="section-heading">
+              <div>
+                <h2>Recent Leave Requests</h2>
+                <p>Latest leave applications across the organisation.</p>
+              </div>
+
+              <button type="button" class="view-button" (click)="goToHRRequests()">
+                View All →
+              </button>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr *ngFor="let request of hrRecentRequests">
+                    <td>
+                      <strong>#{{ request.leaveRequestId }}</strong>
+                    </td>
+                    <td>{{ getHREmployeeName(request.employeeId) }}</td>
+                    <td>{{ getHRLeaveTypeName(request.leaveTypeId) }}</td>
+                    <td>{{ request.startDate | date: 'dd MMM yyyy' }}</td>
+                    <td>{{ request.endDate | date: 'dd MMM yyyy' }}</td>
+                    <td>{{ request.totalDays }}</td>
+
+                    <td>
+                      <span class="status-badge" [ngClass]="request.status.toLowerCase()">
+                        {{ request.status }}
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr *ngIf="hrRecentRequests.length === 0">
+                    <td colspan="7" class="empty-state">
+                      <div class="empty-icon">📭</div>
+                      <h3>No Leave Requests Found</h3>
+                      <p>There are no leave requests to display.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="hr-two-column">
+            <!-- Departments -->
+            <section class="content-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Departments</h2>
+                  <p>Departments registered in the organisation.</p>
+                </div>
+
+                <button type="button" class="view-button" (click)="goToHRAdministration()">
+                  Manage Departments →
+                </button>
+              </div>
+
+              <div class="hr-department-grid">
+                <article class="hr-department-item" *ngFor="let department of hrDepartments">
+                  <div class="hr-department-icon">🏢</div>
+                  <div>
+                    <strong>{{ department.name }}</strong>
+                    <p>
+                      {{ departmentEmployeeCount(department.departmentId) }} employee(s) · Department
+                      #{{ department.departmentId }}
+                    </p>
+                  </div>
+                </article>
+
+                <div class="empty-state" *ngIf="hrDepartments.length === 0">
+                  <div class="empty-icon">🏢</div>
+                  <h3>No Departments Found</h3>
+                  <p>Add departments through Administration.</p>
+                </div>
+              </div>
+            </section>
+
+              <!-- Upcoming Holidays -->
+            <section class="content-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Upcoming Holidays</h2>
+                  <p>Organisation holidays for {{ hrHolidayYear }}.</p>
+                </div>
+
+                <button type="button" class="view-button" (click)="goToHRAdministration()">
+                  Manage Holidays →
+                </button>
+              </div>
+
+              <div class="hr-holiday-list">
+                <div class="hr-holiday-item" *ngFor="let holiday of hrUpcomingHolidays">
+                  <div class="hr-holiday-icon">🎉</div>
+
+                  <div>
+                    <strong>{{ holiday.name }}</strong>
+                    <p>{{ holiday.holidayDate | date: 'dd MMMM yyyy' }}</p>
+                  </div>
+                </div>
+
+                <div class="empty-state" *ngIf="hrUpcomingHolidays.length === 0">
+                  <div class="empty-icon">📅</div>
+                  <h3>No Upcoming Holidays</h3>
+                  <p>No upcoming holidays are available for this year.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">© 2026 LeaveFlow · Leave Management System</footer>
+  </main>
+</div>

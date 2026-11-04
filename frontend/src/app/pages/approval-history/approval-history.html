@@ -1,0 +1,210 @@
+<div class="management-page">
+  <header class="topbar">
+    <a routerLink="/dashboard" class="brand">
+      <span class="brand-logo">L</span>
+      <span>
+        <strong>LeaveFlow</strong>
+        <small>Leave Management</small>
+      </span>
+    </a>
+
+    <div class="user-actions">
+      <span class="user-avatar">
+        {{ username.charAt(0).toUpperCase() }}
+      </span>
+
+      <div class="user-info">
+        <strong>{{ username }}</strong>
+        <small>{{ role }}</small>
+      </div>
+
+      <button class="btn btn-outline" type="button" (click)="logout()">
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="welcome-section">
+      <div>
+        <span class="eyebrow">LEAVE MANAGEMENT</span>
+        <h1>Approval History</h1>
+        <p>Review past approved and rejected leave requests.</p>
+      </div>
+
+      <button class="btn btn-primary" type="button" (click)="refresh()"
+        [disabled]="loading">
+        {{ loading ? 'Refreshing...' : '↻ Refresh History' }}
+      </button>
+    </section>
+
+    <div class="alert alert-error" *ngIf="error" role="alert">
+      {{ error }}
+    </div>
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-icon purple">📋</div>
+        <div>
+          <p>Total Decisions</p>
+          <h2>{{ filtered.length }}</h2>
+          <small>Approved and rejected requests</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#dcfce7">✅</div>
+        <div>
+          <p>Approved</p>
+          <h2>{{ approvedCount }}</h2>
+          <small>Requests you approved</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#fee2e2">❌</div>
+        <div>
+          <p>Rejected</p>
+          <h2>{{ rejectedCount }}</h2>
+          <small>Requests you rejected</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon orange">👥</div>
+        <div>
+          <p>Team Scope</p>
+          <h2>{{ role === 'Manager' ? 'Direct reports' : 'All employees' }}</h2>
+          <small>{{ role === 'Manager' ? 'Only your team' : 'HR access' }}</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <h2>Approval History</h2>
+          <p>A record of requests you have already decided.</p>
+        </div>
+
+        <span class="count-badge">{{ filtered.length }} decision(s)</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <span>⌕</span>
+          <input
+            type="search"
+            name="search"
+            [(ngModel)]="search"
+            placeholder="Search employee, reason, approver..."
+            aria-label="Search approval history"
+          />
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="loading">
+        <div class="spinner"></div>
+        <h3>Loading history</h3>
+        <p>Please wait while we retrieve your decision history.</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+        <div class="empty-icon">📭</div>
+        <h3>No decisions found</h3>
+        <p>
+          There are no matching decisions.
+          Try changing your search or refresh the list.
+        </p>
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading && filtered.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Employee</th>
+              <th>Leave Type</th>
+              <th>Leave Dates</th>
+              <th>Duration</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Decided On</th>
+              <th>By</th>
+              <th>Comment</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of filtered">
+              <td>
+                <strong>#{{ row.leaveRequestId }}</strong>
+              </td>
+
+              <td>
+                <div class="employee-cell">
+                  <span class="employee-avatar">
+                    {{ (row.employeeName || 'E').charAt(0).toUpperCase() }}
+                  </span>
+
+                  <div>
+                    <strong>{{ row.employeeName || 'Employee' }}</strong>
+                    <small>{{ row.employeeEmail }}</small>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ getLeaveType(row.leaveTypeId) }}</td>
+
+              <td>
+                <div class="date-cell">
+                  <strong>{{ formatDate(row.startDate) }}</strong>
+                  <small>to {{ formatDate(row.endDate) }}</small>
+                </div>
+              </td>
+
+              <td>
+                <span class="duration-badge">
+                  {{ row.totalDays }}
+                  {{ row.totalDays === 1 ? 'day' : 'days' }}
+                </span>
+              </td>
+
+              <td>
+                <span class="reason-text" [title]="row.reason">
+                  {{ row.reason }}
+                </span>
+              </td>
+
+              <td>
+                <span class="status-badge" [ngClass]="row.status.toLowerCase()">
+                  {{ row.status }}
+                </span>
+              </td>
+
+              <td>{{ formatDateTime(row.decidedAtUtc) }}</td>
+
+              <td>
+                <strong>{{ row.approverName || 'Unknown' }}</strong>
+              </td>
+
+              <td>
+                <span class="reason-text" [title]="row.decisionComment">
+                  {{ row.decisionComment || '—' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer" *ngIf="!loading && filtered.length > 0">
+        Showing {{ filtered.length }} decision(s)
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      © {{ year || 2026 }} LeaveFlow · Leave Management System
+    </footer>
+  </main>
+</div>

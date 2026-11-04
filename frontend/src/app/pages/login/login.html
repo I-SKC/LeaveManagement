@@ -1,0 +1,58 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <h1>LeaveFlow</h1>
+      <p>Leave Management System</p>
+    </div>
+
+    <div class="welcome">
+      <h2>Welcome back!</h2>
+      <p>Sign in to manage your leaves.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        placeholder="Enter your email"
+        autocomplete="username"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        placeholder="Enter your password"
+        autocomplete="current-password"
+      />
+    </div>
+
+    <p class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </p>
+
+    <button
+      type="button"
+      (click)="onSubmit()"
+      [disabled]="isLoading"
+    >
+      {{ isLoading ? 'Signing in...' : 'Sign In' }}
+    </button>
+
+    <p class="security-note">
+      Secure access for Employees, Managers, and HR
+    </p>
+
+    <footer>
+      © 2026 LeaveFlow · Leave Management System
+    </footer>
+  </div>
+</div>

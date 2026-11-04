@@ -1,0 +1,160 @@
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7ff, #e8edff);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(31, 41, 55, 0.10);
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  color: #ffffff;
+  background: #5145ed;
+  border-radius: 14px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brand h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.brand p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.welcome {
+  margin-bottom: 24px;
+}
+
+.welcome h2 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 21px;
+}
+
+.welcome p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #5145ed;
+  box-shadow: 0 0 0 3px rgba(81, 69, 237, 0.12);
+  background: #ffffff;
+}
+
+.error-message {
+  margin: 0 0 16px;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+form button {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background: #5145ed;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+form button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.security-note {
+  margin: 22px 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+footer {
+  padding-top: 18px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 24px;
+  }
+}

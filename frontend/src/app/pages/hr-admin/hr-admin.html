@@ -1,0 +1,1026 @@
+<div class="management-page">
+  <header class="topbar">
+    <a routerLink="/dashboard" class="brand">
+      <span class="brand-logo">L</span>
+      <span>
+        <strong>LeaveFlow</strong>
+        <small>Leave Management</small>
+      </span>
+    </a>
+
+    <div class="user-actions">
+      <span class="user-avatar">
+        {{ username.charAt(0).toUpperCase() }}
+      </span>
+
+      <div class="user-info">
+        <strong>{{ username }}</strong>
+        <small>Human Resources</small>
+      </div>
+
+      <button class="btn btn-outline" type="button" (click)="logout()">
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <section class="welcome-section">
+      <div>
+        <span class="eyebrow">ADMINISTRATION</span>
+        <h1>HR Administration</h1>
+        <p>Manage your workforce, departments and leave policies.</p>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="refresh()"
+        [disabled]="isRefreshing"
+      >
+        {{ isRefreshing ? '↻ Refreshing...' : '↻ Refresh Data' }}
+      </button>
+    </section>
+
+    <div class="alert alert-success" *ngIf="message" role="status">
+      ✓ {{ message }}
+    </div>
+
+    <div class="alert alert-error" *ngIf="error" role="alert">
+      {{ error }}
+    </div>
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-icon purple">👥</div>
+        <div>
+          <p>Total Employees</p>
+          <h2>{{ employees.length }}</h2>
+          <small>Registered employees</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon green">✓</div>
+        <div>
+          <p>Active Employees</p>
+          <h2>{{ activeEmployeeCount }}</h2>
+          <small>Currently active</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon blue">🏢</div>
+        <div>
+          <p>Departments</p>
+          <h2>{{ activeDepartments.length }}</h2>
+          <small>Available departments</small>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon orange">📅</div>
+        <div>
+          <p>Active Leave Types</p>
+          <h2>{{ activeLeaveTypeCount }}</h2>
+          <small>Available leave policies</small>
+        </div>
+      </article>
+    </section>
+
+    <!-- Employee administration -->
+    <section class="content-card employee-section">
+      <div class="section-heading">
+        <div>
+          <h2>Employee Directory</h2>
+          <p>Create, edit and manage employee accounts and assignments.</p>
+        </div>
+
+        <div class="heading-actions">
+          <span class="count-badge">
+            {{ activeEmployeeCount }} active
+            <ng-container *ngIf="inactiveEmployeeCount > 0">
+              · {{ inactiveEmployeeCount }} inactive
+            </ng-container>
+          </span>
+
+          <button
+            class="btn btn-primary"
+            type="button"
+            (click)="startEmployeeCreate()"
+            *ngIf="!employeeFormOpen"
+          >
+            + Add Employee
+          </button>
+        </div>
+      </div>
+
+      <form
+        class="form-panel employee-form"
+        *ngIf="employeeFormOpen"
+        (ngSubmit)="saveEmployee()"
+        novalidate
+      >
+        <div class="form-panel-heading">
+          <strong>
+            {{ editingEmployeeId !== null ? 'Edit employee' : 'New employee' }}
+          </strong>
+
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelEmployeeForm()"
+            [disabled]="savingEmployee"
+          >
+            Close
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="employeeName">Full Name</label>
+            <input
+              id="employeeName"
+              name="employeeName"
+              type="text"
+              [(ngModel)]="employeeForm.name"
+              maxlength="150"
+              placeholder="e.g. Alex Morgan"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="employeeEmail">Email Address</label>
+            <input
+              id="employeeEmail"
+              name="employeeEmail"
+              type="email"
+              [(ngModel)]="employeeForm.email"
+              maxlength="200"
+              placeholder="name@company.com"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="employeeDepartment">Department</label>
+            <select
+              id="employeeDepartment"
+              name="employeeDepartment"
+              [(ngModel)]="employeeForm.departmentId"
+              required
+            >
+              <option [ngValue]="null" disabled>Select a department</option>
+              <option
+                *ngFor="let department of activeDepartments; trackBy: trackByDepartment"
+                [ngValue]="department.departmentId"
+              >
+                {{ department.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="employeeManager">Reporting Manager</label>
+            <select
+              id="employeeManager"
+              name="employeeManager"
+              [(ngModel)]="employeeForm.managerId"
+            >
+              <option [ngValue]="null">No manager</option>
+              <option
+                *ngFor="let manager of activeManagerOptions; trackBy: trackByEmployee"
+                [ngValue]="manager.employeeId"
+              >
+                {{ manager.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-field" *ngIf="editingEmployeeId === null">
+            <label for="employeeJoinDate">Joining Date</label>
+            <input
+              id="employeeJoinDate"
+              name="employeeJoinDate"
+              type="date"
+              [(ngModel)]="employeeForm.joinDate"
+              required
+            />
+          </div>
+        </div>
+
+        <p class="form-error" *ngIf="employeeFormError" role="alert">
+          ⚠️ {{ employeeFormError }}
+        </p>
+
+        <div class="form-actions">
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelEmployeeForm()"
+            [disabled]="savingEmployee"
+          >
+            Cancel
+          </button>
+
+          <button class="btn btn-primary" type="submit" [disabled]="savingEmployee">
+            {{
+              savingEmployee
+                ? 'Saving...'
+                : editingEmployeeId !== null
+                  ? 'Save Changes'
+                  : 'Create Employee'
+            }}
+          </button>
+        </div>
+      </form>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <span>⌕</span>
+          <input
+            type="search"
+            name="employeeSearch"
+            [ngModel]="employeeSearch"
+            (ngModelChange)="employeeSearch = $event; onSearchChange()"
+            placeholder="Search by name, email, employee ID, department..."
+            aria-label="Search employees"
+          />
+        </div>
+      </div>
+
+      <div class="alert alert-error section-alert"
+        *ngIf="!loadingEmployees && employeesError" role="alert">
+        <span>⚠️ {{ employeesError }}</span>
+
+        <button class="btn btn-outline" type="button" (click)="loadEmployees()">
+          Try Again
+        </button>
+      </div>
+
+      <div class="loading-state" *ngIf="loadingEmployees">
+        <div class="spinner"></div>
+        <p>Loading employees...</p>
+      </div>
+
+      <div class="empty-state"
+        *ngIf="!loadingEmployees && !employeesError && filteredEmployees.length === 0">
+        <div class="empty-icon">👥</div>
+        <h3>{{ employeeSearch.trim() ? 'No matching employees' : 'No employees found' }}</h3>
+        <p *ngIf="employeeSearch.trim()">
+          No employee matches "{{ employeeSearch.trim() }}". Try another search.
+        </p>
+        <p *ngIf="!employeeSearch.trim()">
+          Employees will appear here once they are registered.
+        </p>
+      </div>
+
+      <div class="table-wrapper"
+        *ngIf="!loadingEmployees && filteredEmployees.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Employee ID</th>
+              <th>Department</th>
+              <th>Manager</th>
+              <th>Joining Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let employee of pagedEmployees; trackBy: trackByEmployee">
+              <td>
+                <div class="employee-cell">
+                  <span class="employee-avatar">
+                    {{ employee.name.charAt(0).toUpperCase() }}
+                  </span>
+
+                  <div>
+                    <strong>{{ employee.name }}</strong>
+                    <small>{{ employee.email }}</small>
+                  </div>
+                </div>
+              </td>
+
+              <td>#{{ employee.employeeId }}</td>
+
+              <td>{{ departmentLabel(employee.departmentId) }}</td>
+
+              <td>{{ managerLabel(employee.managerId) }}</td>
+
+              <td>{{ employee.joinDate | date:'dd MMM yyyy' }}</td>
+
+              <td>
+                <span
+                  class="status-badge"
+                  [class.active]="employee.isActive"
+                  [class.inactive]="!employee.isActive"
+                >
+                  {{ employee.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="btn btn-outline"
+                    type="button"
+                    (click)="startEmployeeEdit(employee)"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    *ngIf="employee.isActive"
+                    class="btn btn-reject"
+                    type="button"
+                    (click)="requestDeactivation(employee)"
+                  >
+                    Deactivate
+                  </button>
+
+                  <button
+                    *ngIf="!employee.isActive"
+                    class="btn btn-approve"
+                    type="button"
+                    (click)="requestActivation(employee)"
+                  >
+                    Reactivate
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer" *ngIf="!loadingEmployees && !employeesError">
+        <span>
+          Showing {{ pageStart }}–{{ pageEnd }} of {{ filteredEmployees.length }} employee(s)
+        </span>
+
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            aria-label="Previous page"
+          >
+            ‹ Prev
+          </button>
+
+          <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            aria-label="Next page"
+          >
+            Next ›
+          </button>
+        </div>
+      </div>
+
+      <div class="confirm-panel" *ngIf="pendingDeactivation">
+        <div class="confirm-text">
+          <strong>Deactivate {{ pendingDeactivation.name }}?</strong>
+          <p>
+            The account stays in the directory as inactive and can no longer sign in or request
+            leave. Existing leave history and balances are preserved.
+          </p>
+        </div>
+
+        <div class="confirm-actions">
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelDeactivation()"
+            [disabled]="deactivating"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-reject"
+            type="button"
+            (click)="confirmDeactivation()"
+            [disabled]="deactivating"
+          >
+            {{ deactivating ? 'Deactivating...' : 'Confirm Deactivate' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="confirm-panel" *ngIf="pendingActivation">
+        <div class="confirm-text">
+          <strong>Reactivate {{ pendingActivation.name }}?</strong>
+          <p>
+            The employee regains access to sign in and request leave with their existing
+            balance.
+          </p>
+        </div>
+
+        <div class="confirm-actions">
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelActivation()"
+            [disabled]="deactivating"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-approve"
+            type="button"
+            (click)="confirmActivation()"
+            [disabled]="deactivating"
+          >
+            {{ deactivating ? 'Reactivating...' : 'Confirm Reactivate' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="management-grid">
+      <!-- Departments -->
+      <article class="content-card">
+        <div class="section-heading">
+          <div>
+            <h2>Departments</h2>
+            <p>Create, rename and retire departments.</p>
+          </div>
+
+          <span class="section-icon">🏢</span>
+        </div>
+
+        <form class="form-panel" (ngSubmit)="addDepartment()" novalidate>
+          <label for="departmentName">Department Name</label>
+
+          <input
+            id="departmentName"
+            name="departmentName"
+            type="text"
+            [(ngModel)]="departmentName"
+            maxlength="100"
+            placeholder="e.g. Engineering"
+            required
+          />
+
+          <button
+            class="btn btn-primary full-width"
+            type="submit"
+            [disabled]="savingDepartment || !departmentName.trim()"
+          >
+            {{ savingDepartment ? 'Creating...' : '+ Add Department' }}
+          </button>
+
+          <p class="form-error" *ngIf="departmentFormError" role="alert">
+            ⚠️ {{ departmentFormError }}
+          </p>
+        </form>
+
+        <div class="list-heading">
+          <strong>Existing Departments</strong>
+          <span>{{ departments.length }}</span>
+        </div>
+
+        <div class="inline-error" *ngIf="!loadingDepartments && departmentsError">
+          <span>⚠️ {{ departmentsError }}</span>
+
+          <button class="btn btn-outline" type="button" (click)="loadDepartments()">
+            Retry
+          </button>
+        </div>
+
+        <div class="loading-inline" *ngIf="loadingDepartments">
+          Loading departments...
+        </div>
+
+        <div class="simple-list" *ngIf="!loadingDepartments && !departmentsError">
+          <div
+            class="simple-list-item"
+            *ngFor="let department of departments; trackBy: trackByDepartment"
+          >
+            <span class="list-item-icon">🏢</span>
+
+            <div class="list-item-main">
+              <ng-container *ngIf="editingDepartmentId !== department.departmentId">
+                <strong>
+                  {{ department.name }}
+                  <span
+                    class="status-badge inactive"
+                    *ngIf="department.isActive === false"
+                  >
+                    Retired
+                  </span>
+                </strong>
+
+                <small>
+                  {{ departmentEmployeeCount(department.departmentId) }} active employee(s)
+                </small>
+              </ng-container>
+
+              <div class="inline-edit" *ngIf="editingDepartmentId === department.departmentId">
+                <label class="sr-only" [for]="'departmentRename' + department.departmentId">
+                  Department name
+                </label>
+
+                <input
+                  [id]="'departmentRename' + department.departmentId"
+                  name="departmentDraftName"
+                  type="text"
+                  [(ngModel)]="departmentDraftName"
+                  maxlength="100"
+                />
+
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  (click)="saveDepartment()"
+                  [disabled]="savingDepartment"
+                >
+                  {{ savingDepartment ? 'Saving...' : 'Save' }}
+                </button>
+
+                <button
+                  class="btn btn-outline"
+                  type="button"
+                  (click)="cancelDepartmentEdit()"
+                  [disabled]="savingDepartment"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="row-actions"
+              *ngIf="editingDepartmentId !== department.departmentId"
+            >
+              <button
+                class="btn btn-outline"
+                type="button"
+                (click)="startDepartmentEdit(department)"
+              >
+                Rename
+              </button>
+
+              <button
+                class="btn btn-reject"
+                type="button"
+                *ngIf="department.isActive !== false"
+                (click)="requestDepartmentRemoval(department)"
+              >
+                Retire
+              </button>
+            </div>
+          </div>
+
+          <p class="empty-inline" *ngIf="departments.length === 0">
+            No departments available.
+          </p>
+        </div>
+
+        <div class="confirm-panel" *ngIf="pendingDepartmentRemoval">
+          <div class="confirm-text">
+            <strong>Retire "{{ pendingDepartmentRemoval.name }}"?</strong>
+            <p>
+              The department is hidden from new assignments. Employees and leave history stay
+              untouched.
+            </p>
+          </div>
+
+          <div class="confirm-actions">
+            <button
+              class="btn btn-outline"
+              type="button"
+              (click)="cancelDepartmentRemoval()"
+              [disabled]="savingDepartment"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="btn btn-reject"
+              type="button"
+              (click)="confirmDepartmentRemoval()"
+              [disabled]="savingDepartment"
+            >
+              {{ savingDepartment ? 'Retiring...' : 'Confirm Retire' }}
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Leave types -->
+      <article class="content-card">
+        <div class="section-heading">
+          <div>
+            <h2>Leave Policies</h2>
+            <p>Configure leave types, allowances and approval rules.</p>
+          </div>
+
+          <span class="section-icon">📅</span>
+        </div>
+
+        <form class="form-panel" (ngSubmit)="addLeaveType()" novalidate>
+          <label for="typeName">Leave Type Name</label>
+
+          <input
+            id="typeName"
+            name="typeName"
+            type="text"
+            [(ngModel)]="typeName"
+            maxlength="100"
+            placeholder="e.g. Casual Leave"
+            required
+          />
+
+          <label for="allowance">Annual Allowance (days)</label>
+
+          <input
+            id="allowance"
+            name="allowance"
+            type="number"
+            [(ngModel)]="allowance"
+            min="0"
+            max="365"
+            required
+          />
+
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              name="requiresApproval"
+              [(ngModel)]="requiresApproval"
+            />
+
+            <span>Requires manager approval</span>
+          </label>
+
+          <button
+            class="btn btn-primary full-width"
+            type="submit"
+            [disabled]="savingLeaveType || !typeName.trim() || allowance < 0"
+          >
+            {{ savingLeaveType ? 'Creating...' : '+ Add Leave Type' }}
+          </button>
+
+          <p class="form-error" *ngIf="leaveTypeFormError" role="alert">
+            ⚠️ {{ leaveTypeFormError }}
+          </p>
+        </form>
+
+        <div class="list-heading">
+          <strong>Configured Leave Types</strong>
+          <span>{{ leaveTypes.length }}</span>
+        </div>
+
+        <div class="inline-error" *ngIf="!loadingLeaveTypes && leaveTypesError">
+          <span>⚠️ {{ leaveTypesError }}</span>
+
+          <button class="btn btn-outline" type="button" (click)="loadLeaveTypes()">
+            Retry
+          </button>
+        </div>
+
+        <div class="loading-inline" *ngIf="loadingLeaveTypes">
+          Loading leave types...
+        </div>
+
+        <div class="simple-list" *ngIf="!loadingLeaveTypes && !leaveTypesError">
+          <div
+            class="simple-list-item"
+            *ngFor="let type of leaveTypes; trackBy: trackByLeaveType"
+          >
+            <span class="list-item-icon">📄</span>
+
+            <div class="list-item-main">
+              <ng-container *ngIf="editingLeaveTypeId !== type.leaveTypeId">
+                <strong>{{ type.name }}</strong>
+                <small>
+                  {{ type.annualAllowance }} days annually
+                  ·
+                  {{
+                    type.requiresManagerApproval
+                      ? 'Approval required'
+                      : 'No manager approval required'
+                  }}
+                </small>
+              </ng-container>
+
+              <div class="inline-edit" *ngIf="editingLeaveTypeId === type.leaveTypeId">
+                <label class="sr-only" [for]="'typeEditName' + type.leaveTypeId">
+                  Leave type name
+                </label>
+
+                <input
+                  [id]="'typeEditName' + type.leaveTypeId"
+                  name="leaveTypeDraftName"
+                  type="text"
+                  [(ngModel)]="leaveTypeDraft.name"
+                  maxlength="100"
+                />
+
+                <label class="sr-only" [for]="'typeEditAllowance' + type.leaveTypeId">
+                  Annual allowance
+                </label>
+
+                <input
+                  [id]="'typeEditAllowance' + type.leaveTypeId"
+                  name="leaveTypeDraftAllowance"
+                  type="number"
+                  min="0"
+                  max="365"
+                  [(ngModel)]="leaveTypeDraft.annualAllowance"
+                />
+
+                <label class="checkbox-row inline-check">
+                  <input
+                    type="checkbox"
+                    name="leaveTypeDraftApproval"
+                    [(ngModel)]="leaveTypeDraft.requiresManagerApproval"
+                  />
+
+                  <span>Manager approval</span>
+                </label>
+
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  (click)="saveLeaveType()"
+                  [disabled]="savingLeaveType"
+                >
+                  {{ savingLeaveType ? 'Saving...' : 'Save' }}
+                </button>
+
+                <button
+                  class="btn btn-outline"
+                  type="button"
+                  (click)="cancelLeaveTypeEdit()"
+                  [disabled]="savingLeaveType"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="row-actions"
+              *ngIf="editingLeaveTypeId !== type.leaveTypeId"
+            >
+              <span
+                class="status-badge"
+                [class.active]="type.isActive"
+                [class.inactive]="!type.isActive"
+              >
+                {{ type.isActive ? 'Active' : 'Inactive' }}
+              </span>
+
+              <button
+                class="btn btn-outline"
+                type="button"
+                (click)="startLeaveTypeEdit(type)"
+              >
+                Edit
+              </button>
+
+              <button
+                class="btn"
+                [class.btn-reject]="type.isActive"
+                [class.btn-approve]="!type.isActive"
+                type="button"
+                (click)="toggleLeaveType(type)"
+                [disabled]="togglingLeaveType"
+              >
+                {{ type.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+            </div>
+          </div>
+
+          <p class="empty-inline" *ngIf="leaveTypes.length === 0">
+            No leave types configured.
+          </p>
+        </div>
+
+        <div class="confirm-panel" *ngIf="pendingLeaveTypeDeactivation">
+          <div class="confirm-text">
+            <strong>Deactivate "{{ pendingLeaveTypeDeactivation.name }}"?</strong>
+            <p>
+              Employees can no longer select this leave type. Existing requests, balances and
+              history are preserved.
+            </p>
+          </div>
+
+          <div class="confirm-actions">
+            <button
+              class="btn btn-outline"
+              type="button"
+              (click)="cancelLeaveTypeDeactivation()"
+              [disabled]="togglingLeaveType"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="btn btn-reject"
+              type="button"
+              (click)="confirmLeaveTypeDeactivation()"
+              [disabled]="togglingLeaveType"
+            >
+              {{ togglingLeaveType ? 'Deactivating...' : 'Confirm Deactivate' }}
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Holidays -->
+    <section class="content-card holiday-section">
+      <div class="section-heading">
+        <div>
+          <h2>Holiday Calendar</h2>
+          <p>Configure holidays used when working days are calculated.</p>
+        </div>
+
+        <div class="year-control">
+          <label for="holidayYear">Year</label>
+
+          <input
+            id="holidayYear"
+            name="holidayYear"
+            type="number"
+            [(ngModel)]="year"
+            min="2000"
+            max="2100"
+          />
+
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="loadHolidays()"
+            [disabled]="loadingHolidays"
+          >
+            {{ loadingHolidays ? 'Loading...' : 'Load' }}
+          </button>
+        </div>
+      </div>
+
+      <form class="form-panel holiday-form" (ngSubmit)="saveHoliday()" novalidate>
+        <div class="form-panel-heading">
+          <strong>
+            {{ editingHolidayId !== null ? 'Edit holiday' : 'Add holiday' }}
+          </strong>
+
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelHolidayForm()"
+            *ngIf="editingHolidayId !== null || holidayForm.name || holidayForm.holidayDate"
+            [disabled]="savingHoliday"
+          >
+            Close
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="holidayDate">Holiday Date</label>
+            <input
+              id="holidayDate"
+              name="holidayDate"
+              type="date"
+              [(ngModel)]="holidayForm.holidayDate"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="holidayName">Holiday Name</label>
+            <input
+              id="holidayName"
+              name="holidayName"
+              type="text"
+              [(ngModel)]="holidayForm.name"
+              maxlength="150"
+              placeholder="e.g. Diwali"
+              required
+            />
+          </div>
+        </div>
+
+        <p class="form-error" *ngIf="holidayFormError" role="alert">
+          ⚠️ {{ holidayFormError }}
+        </p>
+
+        <div class="form-actions">
+          <button
+            class="btn btn-primary"
+            type="submit"
+            [disabled]="savingHoliday || !holidayForm.name.trim() || !holidayForm.holidayDate"
+          >
+            {{
+              savingHoliday
+                ? 'Saving...'
+                : editingHolidayId !== null
+                  ? 'Save Holiday'
+                  : '+ Add Holiday'
+            }}
+          </button>
+        </div>
+      </form>
+
+      <div class="alert alert-error section-alert"
+        *ngIf="!loadingHolidays && holidaysError" role="alert">
+        <span>⚠️ {{ holidaysError }}</span>
+
+        <button class="btn btn-outline" type="button" (click)="loadHolidays()">
+          Try Again
+        </button>
+      </div>
+
+      <div class="loading-state" *ngIf="loadingHolidays">
+        <div class="spinner"></div>
+        <p>Loading holidays...</p>
+      </div>
+
+      <div class="holiday-grid" *ngIf="!loadingHolidays && !holidaysError && holidays.length > 0">
+        <article class="holiday-card" *ngFor="let holiday of holidays; trackBy: trackByHoliday">
+          <div class="holiday-icon">🎉</div>
+
+          <div class="holiday-main">
+            <strong>{{ holiday.name }}</strong>
+            <small>{{ holiday.holidayDate | date:'dd MMM yyyy' }}</small>
+          </div>
+
+          <div class="row-actions">
+            <button
+              class="btn btn-outline"
+              type="button"
+              (click)="startHolidayEdit(holiday)"
+            >
+              Edit
+            </button>
+
+            <button
+              class="btn btn-reject"
+              type="button"
+              (click)="requestHolidayDeletion(holiday)"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-state"
+        *ngIf="!loadingHolidays && !holidaysError && holidays.length === 0">
+        <div class="empty-icon">🗓️</div>
+        <h3>No holidays configured</h3>
+        <p>Add public holidays for {{ year }} to keep leave calculations accurate.</p>
+      </div>
+
+      <div class="confirm-panel" *ngIf="pendingHolidayDeletion">
+        <div class="confirm-text">
+          <strong>Delete "{{ pendingHolidayDeletion.name }}"?</strong>
+          <p>
+            The holiday is removed from the calendar. Leave requests that were already
+            submitted keep their recorded totals.
+          </p>
+        </div>
+
+        <div class="confirm-actions">
+          <button
+            class="btn btn-outline"
+            type="button"
+            (click)="cancelHolidayDeletion()"
+            [disabled]="deletingHoliday"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-reject"
+            type="button"
+            (click)="confirmHolidayDeletion()"
+            [disabled]="deletingHoliday"
+          >
+            {{ deletingHoliday ? 'Deleting...' : 'Confirm Delete' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      © {{ year }} LeaveFlow · Leave Management System
+    </footer>
+  </main>
+</div>
