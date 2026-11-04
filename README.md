@@ -130,20 +130,20 @@ The backend is a REST API built with ASP.NET Core. The frontend is a standalone 
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend framework | ASP.NET Core on .NET 10.0 |
-| Frontend framework | Angular 22 with standalone components |
-| Frontend language | TypeScript 6.0 |
-| Database | SQL Server |
-| ORM | Entity Framework Core 10.0.10 |
-| Authentication | JWT Bearer tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`) |
-| API docs | OpenAPI / Swagger UI (development) |
-| Password hashing | `System.Security.Cryptography.Pkcs` |
-| Token generation | `System.IdentityModel.Tokens.Jwt` |
-| Dependency injection | Built-in ASP.NET Core DI |
-| Repositories | Repository pattern with a `UnitOfWork` for transactions |
-| Architecture | Clean Architecture with separate Domain, Application, Infrastructure, and API layers |
+| Layer                | Technology                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| Backend framework    | ASP.NET Core on .NET 10.0                                                            |
+| Frontend framework   | Angular 22 with standalone components                                                |
+| Frontend language    | TypeScript 6.0                                                                       |
+| Database             | SQL Server                                                                           |
+| ORM                  | Entity Framework Core 10.0.10                                                        |
+| Authentication       | JWT Bearer tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`)                  |
+| API docs             | OpenAPI / Swagger UI (development)                                                   |
+| Password hashing     | `System.Security.Cryptography.Pkcs`                                                  |
+| Token generation     | `System.IdentityModel.Tokens.Jwt`                                                    |
+| Dependency injection | Built-in ASP.NET Core DI                                                             |
+| Repositories         | Repository pattern with a `UnitOfWork` for transactions                              |
+| Architecture         | Clean Architecture with separate Domain, Application, Infrastructure, and API layers |
 
 ### Development tools
 
@@ -166,22 +166,26 @@ LeaveManagement.Api             # Controllers, middleware, startup, seeding
 ### Layers
 
 **API Layer** (`LeaveManagement.Api`)
+
 - Controllers: `AuthController`, `EmployeeController`, `DepartmentController`, `LeaveTypeController`, `LeaveRequestController`, `LeaveApprovalController`, `LeaveBalanceController`, `HolidayController`.
 - Global exception middleware that converts unhandled server errors into a consistent JSON response.
 - CORS configured from configuration, with the Angular dev server as the default allowed origin.
 - OpenAPI document generation and Swagger UI in development.
 
 **Application Layer** (`LeaveManagement.Application`)
+
 - Service interfaces in `Interfaces/Services`.
 - DTOs for input and output shapes.
 - No infrastructure dependencies.
 
 **Domain Layer** (`LeaveManagement.Domain`)
+
 - Entities: `Employee`, `Department`, `LeaveType`, `LeaveRequest`, `LeaveBalance`, `Holiday`, `ApplicationUser`.
 - Enums: `Role`, `LeaveRequestStatus`.
 - Domain service: `WorkingDayCalculator`.
 
 **Infrastructure Layer** (`LeaveManagement.Infrastructure`)
+
 - EF Core `AppDbContext` with fluent configurations.
 - Repository implementations for each aggregate.
 - `UnitOfWork` for transactional operations.
@@ -223,15 +227,15 @@ graph TD
 
 ### Main entities
 
-| Entity | Purpose |
-|--------|---------|
-| `Employee` | Employee profile: name, email, department, manager, joining date, active flag. |
-| `Department` | Company department with name and active flag. |
-| `LeaveType` | Leave policy: name, annual allowance, active flag, requires-manager-approval flag. |
-| `LeaveRequest` | Individual leave request with employee, leave type, date range, total days, status, and decision metadata. |
-| `LeaveBalance` | Yearly balance per employee and leave type. |
-| `Holiday` | Company holiday date and name for a given year. |
-| `ApplicationUser` | Login account linked to an employee, with username, password hash, and role. |
+| Entity            | Purpose                                                                                                    |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `Employee`        | Employee profile: name, email, department, manager, joining date, active flag.                             |
+| `Department`      | Company department with name and active flag.                                                              |
+| `LeaveType`       | Leave policy: name, annual allowance, active flag, requires-manager-approval flag.                         |
+| `LeaveRequest`    | Individual leave request with employee, leave type, date range, total days, status, and decision metadata. |
+| `LeaveBalance`    | Yearly balance per employee and leave type.                                                                |
+| `Holiday`         | Company holiday date and name for a given year.                                                            |
+| `ApplicationUser` | Login account linked to an employee, with username, password hash, and role.                               |
 
 ### Key relationships
 
@@ -526,16 +530,16 @@ Use user secrets or environment variables for local development.
 
 The API is organized around resource controllers. All endpoints require authentication by default.
 
-| Controller | Base route | Main responsibilities |
-|------------|------------|------------------------|
-| `AuthController` | `/api/Auth` | Login and employee registration. |
-| `EmployeeController` | `/api/Employee` | List, get, create, update, activate, and deactivate employees. |
-| `DepartmentController` | `/api/Department` | List, get, create, rename, and retire departments. |
-| `LeaveTypeController` | `/api/LeaveType` | List, get, create, update, activate, and deactivate leave types. |
-| `LeaveRequestController` | `/api/LeaveRequest` | Create and manage leave requests. |
-| `LeaveApprovalController` | `/api/LeaveApproval` | Approve and reject requests, and view approval history. |
-| `LeaveBalanceController` | `/api/LeaveBalance` | View leave balances for an employee and year. |
-| `HolidayController` | `/api/Holiday` | List, get, create, update, and delete holidays. |
+| Controller                | Base route           | Main responsibilities                                            |
+| ------------------------- | -------------------- | ---------------------------------------------------------------- |
+| `AuthController`          | `/api/Auth`          | Login and employee registration.                                 |
+| `EmployeeController`      | `/api/Employee`      | List, get, create, update, activate, and deactivate employees.   |
+| `DepartmentController`    | `/api/Department`    | List, get, create, rename, and retire departments.               |
+| `LeaveTypeController`     | `/api/LeaveType`     | List, get, create, update, activate, and deactivate leave types. |
+| `LeaveRequestController`  | `/api/LeaveRequest`  | Create and manage leave requests.                                |
+| `LeaveApprovalController` | `/api/LeaveApproval` | Approve and reject requests, and view approval history.          |
+| `LeaveBalanceController`  | `/api/LeaveBalance`  | View leave balances for an employee and year.                    |
+| `HolidayController`       | `/api/Holiday`       | List, get, create, update, and delete holidays.                  |
 
 Role restrictions are enforced on the server. For example:
 
@@ -554,10 +558,10 @@ The seeded demo accounts are safe for documentation and local demos. Their exact
 
 The seeded accounts follow this pattern:
 
-| Username | Role |
-|----------|------|
-| `hr@example.com` | HR |
-| `manager@example.com` | Manager |
+| Username               | Role     |
+| ---------------------- | -------- |
+| `hr@example.com`       | HR       |
+| `manager@example.com`  | Manager  |
 | `employee@example.com` | Employee |
 
 To log in, use the email as the username and the password configured in your local user secrets or environment variables.
@@ -578,4 +582,3 @@ To log in, use the email as the username and the password configured in your loc
 **Iynaparthi Sri Krishna Chaitanya**
 
 GitHub profile: https://github.com/I-SKC
-
