@@ -86,48 +86,6 @@ The backend is a REST API built with ASP.NET Core. The frontend is a standalone 
 - Approval history table for managers and HR.
 - Consolidated all-requests view for HR.
 
-## Screenshots
-
-### Login
-
-![Login](docs/screenshots/login.png)
-
-### HR Dashboard
-
-![HR Dashboard](docs/screenshots/hr-dashboard.png)
-
-### HR Administration
-
-![HR Administration](docs/screenshots/hr-administration.png)
-
-### Employee Dashboard
-
-![Employee Dashboard](docs/screenshots/employee-dashboard.png)
-
-### Apply for Leave
-
-![Apply for Leave](docs/screenshots/apply-leave.png)
-
-### My Leaves
-
-![My Leaves](docs/screenshots/my-leaves.png)
-
-### Leave Balance
-
-![Leave Balance](docs/screenshots/leave-balance.png)
-
-### Manager Approvals
-
-![Manager Approvals](docs/screenshots/manager-approvals.png)
-
-### Approval History
-
-![Approval History](docs/screenshots/approval-history.png)
-
-### Employee Profile
-
-![Employee Profile](docs/screenshots/employee-profile.png)
-
 ## Technology Stack
 
 | Layer                | Technology                                                                           |
